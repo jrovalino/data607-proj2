@@ -1,0 +1,110 @@
+---
+title: "Data607_Proj2"
+author: "Joe_Rovalino, Tamiko Jenkins and Nickolas Chung"
+date: "10/02/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Relevant Information:
+The Powerball lottery was loaded into MySQL DB and describesPowerball winning numbers over a period of Feb 3rd to the present. 
+(1) Created a MySQL database that includes all of the information above. - CHOSE to load to MySQL and use the lesson from homework 2 to create DB.
+(2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy
+and transform your data.
+(3) Perform analysis to compare the numbers in the various position of the powerball winning number.
+(4) Code will be in an R Markdown file, posted to rpubs.com, and will include narrative
+descriptions of your data cleanup work, analysis, and conclusions. We will include in our
+project submission:
+The URL to the .Rmd file in your GitHub repository. and
+The URL for your rpubs.com web page.
+
+```{r}
+library(getPass)
+library(RMySQL)
+
+db_user <- 'root'
+db_password <- getPass::getPass("Enter the password: ")
+db_name <- 'data607proj2'
+db_table <- 'powerball'
+db_host <- '127.0.0.1' # for local access
+db_port <- 3306
+
+mydb <-  dbConnect(MySQL(), user = db_user, password = db_password,
+                 dbname = db_name, host = db_host, port = db_port)
+
+s <- paste0("select * from ", db_table)
+rs <- dbSendQuery(mydb, s)
+df <-  fetch(rs, n = -1)
+on.exit(dbDisconnect(mydb))
+
+df
+```
+*** don't need this - clean up later. 
+#write to CSV file for upload to grading site. Will also upload sql #script used to create the DB #table.
+# good site http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R-Manual/R-Manual5.html
+
+write.csv(df, 'fltbycity.csv',row.names=FALSE)
+*** don't need above - clean up later. 
+
+# https://tibble.tidyverse.org/
+# Tidy work. Use Control Shift M for #shortcut to pipes
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+pb_df <- as_tibble(df)
+pb_df
+
+```
+
+#check gather worked on each position to create a data frame for each num position
+#pb_df %>% gather(num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, - Powerball)
+# select gets rid of Game Name field
+#spread to widen 
+
+```{r}
+
+# Group the data by position - not working yet
+
+pbnum1 <- pb_df %>% gather(Num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, -Powerball) 
+pbnum1
+```
+%>% select (Num1,count)
+
+
+***** BELOW IS GARBAGE needs to be deleted cleaned - oly left for reference to syntax
+pbnum1<- pb_df %>% select(Num1, count) %>% group_by(Num1) 
+pbnum2 <- pb_df %>% gather(Num2, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num3,-Num4, -Num5, -Powerball) %>% select (Num2, count)
+pbnum3 <- pb_df %>% gather(Num3, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num4, -Num5, -Powerball) %>% select (Num3, count)
+pbnum4 <- pb_df %>% gather(Num4, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num5, -Powerball) %>% select (Num4, count)
+pbnum5 <- pb_df %>% gather(Num5, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Powerball) %>% select (Num5, count)
+pbPball <- pb_df %>% gather(Powerball, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Num5) %>% select (Powerball, count)
+
+# Add Percent on time to data frame fltdata2 and total count
+
+fltdata3 <- fltdata2 %>% mutate( percontime = on_time/(on_time + delayed), total_flights = (on_time + delayed))
+fltdata3
+
+  ggplot(fltdata3, aes(fill=airline, y=percontime, x=city)) +
+    ggtitle("Ontime by City") +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    geom_bar(position='dodge', stat="identity") +
+    xlab('City') + 
+    ylab('Percent of Flights On time')
+```
+
+Conclusion:
+1) Alaska airlines has less delays in each airport
+2) Philly appears to be the most on time of all the airports for both airlines from a percentage perspective
+3) San Francisco seems to be the most delayed airport from the graph for both airlines. 
+4) I would fly Alaska if I were concerned with being at an airport on time. 

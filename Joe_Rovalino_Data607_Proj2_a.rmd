@@ -1,6 +1,6 @@
 ---
 title: "Data607_Proj2"
-author: "Joe_Rovalino, Tamiko Jenkins and Nickolas Chung"
+author: "Joe_Rovalino, Tamiko Jenkins and Nicholas Chung"
 date: "10/02/2019"
 output:
   html_document: default
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 Relevant Information:
-The Powerball lottery was loaded into MySQL DB and describesPowerball winning numbers over a period of Feb 3rd to the present. 
+The Powerball lottery was loaded into MySQL DB and describes Powerball winning numbers over a period of Feb 3rd to the present. 
 (1) Created a MySQL database that includes all of the information above. - CHOSE to load to MySQL and use the lesson from homework 2 to create DB.
 (2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy
 and transform your data.
@@ -30,7 +30,7 @@ library(getPass)
 library(RMySQL)
 
 db_user <- 'root'
-db_password <- getPass::getPass("Enter the password: ")
+db_password <- getPass::getPass("Enter the password: ") 
 db_name <- 'data607proj2'
 db_table <- 'powerball'
 db_host <- '127.0.0.1' # for local access
@@ -46,6 +46,33 @@ on.exit(dbDisconnect(mydb))
 
 df
 ```
+
+# load csv into mem for ad hoc EDA. 
+##### NC note: happy to host the mysql db in my aws and share pw via lastpass so we can mutually reference a common table.
+```{r}
+raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
+raw_data
+```
+
+# initial observations on state of raw data:
+* we know that there is variance in header count, where data from 2012 to 2014 has one less header "Power Play"
+* rows that represent drawings from 2012 to 2014 have value "0" where header is "Power Play" / column position is 11
+* column 1 is not useful
+
+# add headers 
+```{r}
+names(raw_data) <- c("game_name", "month", "day", "year", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play")
+head(raw_data)
+```
+
+# list of potential questions we can ask / potential visualizations
+* distribution of numbers across day, month, year
+* distribution of numbers (how "random"/normally distributed is number selection?)
+* what is prize size across time? (would need joining against secondary data source: https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html)
+* what is powerball distribution across time? 
+* what is the range of numbers within each of the 5 numbers? against powerball? against power play?
+* what is likelihood of out-of-state winner?
+
 *** don't need this - clean up later. 
 #write to CSV file for upload to grading site. Will also upload sql #script used to create the DB #table.
 # good site http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R-Manual/R-Manual5.html

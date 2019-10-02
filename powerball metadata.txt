@@ -1,0 +1,10 @@
+﻿Download Current and Past Winning Numbers
+The comma separated values file you can download here contains current and past winning numbers from all Powerball drawings held since Texas began participating in game drawings on February 3, 2010.
+The information in the file is organized in the following manner, one row for each drawing:
+Feb 3, 2010 to Jan 14, 2012:
+Game Name, Month, Day, Year, Num1, Num2, Num3, Num4, Num5, Powerball, Power Play
+Jan 18, 2012 to Jan 18, 2014:
+Game Name, Month, Day, Year, Num1, Num2, Num3, Num4, Num5, Powerball
+Jan 22, 2014 to present:
+Game Name, Month, Day, Year, Num1, Num2, Num3, Num4, Num5, Powerball, Power Play
+

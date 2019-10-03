@@ -73,6 +73,16 @@ head(raw_data)
 * what is the range of numbers within each of the 5 numbers? against powerball? against power play?
 * what is likelihood of out-of-state winner?
 
+# scrape table with estimated jackpot winnings
+```{r}
+library(xml2)
+library(rvest)
+url <- "https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html"
+winnings <- xml2::read_html(url)
+winnings <- rvest::html_table(winnings)[[1]]
+head(winnings)
+```
+
 *** don't need this - clean up later. 
 #write to CSV file for upload to grading site. Will also upload sql #script used to create the DB #table.
 # good site http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R-Manual/R-Manual5.html

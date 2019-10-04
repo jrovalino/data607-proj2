@@ -1,0 +1,252 @@
+---
+title: "Assignment – Tidying and Transforming Data"
+subtitle: "Data 607"
+author: "T. Jenkins"
+output:
+  html_document: 
+    code_download: true
+    code_folding: hide
+    highlight: pygments
+    # number_sections: yes
+    theme: "flatly"
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Assignment – Tidying and Transforming Data
+
+
+The chart above describes arrival delays for two airlines across five destinations. 
+
+Your task is to:
+1. Create a .CSV file (or optionally, a MySQL database!) that includes all of the information above.
+You’re encouraged to use a “wide” structure similar to how the information appears above, so
+that you can practice tidying and transformations as described below.
+2. Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy
+and transform your data.
+3. Perform analysis to compare the arrival delays for the two airlines.
+4. Your code should be in an R Markdown file, posted to rpubs.com, and should include narrative
+descriptions of your data cleanup work, analysis, and conclusions. Please include in your
+homework submission:
+* The URL to the .Rmd file in your GitHub repository. and
+* The URL for your rpubs.com web page.
+
+
+## Section 1: Preperation {.tabset}
+
+
+### Packages
+
+1. Preplan to require some libraries useful for tidying and transforming data. 
+2. Use install.packages() to install the package and then comment it out if it is already installed so it doesn't reinstall. 
+3. Use library() to import the packages. 
+4. Use tidyr to help tidy up data, particularly to conform tabular data for easy programmatic operations and charting. We studied some of the philosophy and aesthetics behind how tidyr conforms tabular data to discrete data. 
+5. Use dplyr to help operate on different types of data with more memorable syntax and shortcuts to common commands and data transformations. Data transformations can also encompass cleaning the data, so, again, it can be operated on in a regular fashion.
+6. Use zoo to perform common data transformations, such as copy values down into NA's in tabular data.
+7. Use ggplot2 to enable helpful charting commands and styles, so as to make your data more presentable. 
+8. Use kableExtra for visual enhancements. 
+9. In this case, we use tidyverse, ggbeeswarm, and ggthemes for visual and other graphical enhancements.
+10. We set the theme to economist.
+```{r}
+
+library('tidyr')
+library('dplyr')
+library('zoo')
+library('ggplot2')
+library('kableExtra')
+
+library(tidyverse)
+library(ggbeeswarm) 
+library(ggthemes) 
+
+#theme_set(theme_minimal())
+theme_set(theme_economist(base_size = 12))
+
+```
+
+#### References
+
+### Data
+
+#### Preparing the Data
+1. First I used an excel program and formatted the cells to text (since it often converts items to other formats automatically)
+2. I entered the data from the image
+3. I saved to csv
+4. I reopened and saved the csv in sublime so that I was sure it would save as utf-8.
+5. I placed the csv in the same folder as my R document.
+
+#### Importing the Data
+
+1. Bring in the airlines data set using the read.csv() command, since our data is in csv format
+2. Put the directory and filename in quotes in the first parameter
+3. Specify that the data has headers in the second parameter (although this is not necessary)
+4. Since we will be re-organizing our table, we ask read.csv() to not convert strings to Factors
+5. We will be copying down data into empty cells, since there is implicit reference to the Airline name in some rows in which a blank space denotes the same airline as that named in the row above. Rather than inject the names into the rows using a sequence, we use a fill down-like method in the dplyr package that relies on NA's. Because the empty cells have a space in them, read.csv() will not automatically replace the empty cell with an NA. We use the na.strings parameter argument name to specify that " " spaces, "" empty cells, and "NA"s should be replaced with system produced NA's. 
+6. I save this to a named variable with the <- assignment operator. I name it wide since that defines a large portion of my assignment: convert wide to tall format. 
+7. To check my work I enter the variable as the last line in my code block so that it echos the newly imported data to my R document.
+
+#### References
+
+1. https://stackoverflow.com/questions/45765944/na-strings-c-in-r/45766041
+
+
+```{r}
+wide <- read.csv("airline_arrivals.csv", stringsAsFactors = FALSE, na.strings=c(""," ","NA"))
+wide 
+```
+
+## Section 2: Variables and Values {.tabset}
+
+### Clean the Names
+
+1. Rename the columns that were automatically names by read.csv first so they can be referenced easily in subsequent operations
+2. Filter any row with all NA's using dplyr filter_all and taking the opposite of any variables in the row are NA
+3. Fill down the Airline names into empty cells. Since fill doesn't seem to work for non numeric characters here, I use the most elegant command I found in the zoo package: na.locf. 
+4. See the work by echoing names_wide
+```{r}
+wide <- read.csv("airline_arrivals.csv", stringsAsFactors = FALSE, na.strings=c(""," ","NA"))
+wide 
+names_wide <- rename(wide, airline="ï..", status=X)  %>%
+  filter_all(any_vars(!is.na(.))) 
+#names_wide %>% fill(names_wide$Airline)
+names_wide[1:1] <- lapply(names_wide[1:1], zoo::na.locf)
+names_wide
+
+```
+#### References
+1. https://stackoverflow.com/questions/4862178/remove-rows-with-all-or-some-nas-missing-values-in-data-frame
+2. https://blog.exploratory.io/filter-data-with-dplyr-76cf5f1a258e
+3. https://stackoverflow.com/questions/52767323/is-there-a-equivalent-for-the-tidyr-fill-for-strings-in-r
+4. https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html
+5. https://tidyr.tidyverse.org/reference/fill.html
+6. https://stackoverflow.com/questions/24172111/change-the-blank-cells-to-na
+
+
+
+### Gather the Variables
+
+1. Note that the names of cities are all values under the discrete category, city
+2. Use tidyr to gather these to conform to a tall format 
+3. Rename the data as tall
+
+
+```{r}
+
+gather_tall <- names_wide %>% 
+  gather(city, count, Los.Angeles:Seattle, na.rm = TRUE)
+gather_tall
+```
+#### References
+1. http://rpubs.com/m_dev/tidyr-intro-and-demos
+
+## Section 3: Observations and Spread {.tabset}
+
+### Spread
+
+1. Use the tidyr spread() to separate the status categories into columns
+2. Present the count of each under the columns
+3. If you don't go back and normalize the column name with the space: on time, you will need to use backticks around the name or you will need to keep track of each row by explicitly introducing a row ID. 
+4. Instead we use make.names() to replace a space with a dot
+
+```{r}
+spread_tall <- spread(gather_tall, status, count)  
+#id_tall <- mutate(spread_tall, id = rownames(tall))
+names(spread_tall) <- make.names(names(spread_tall),unique = TRUE)
+spread_tall
+
+```
+
+#### References 
+1. https://stackoverflow.com/questions/16384933/create-an-id-row-number-column
+
+
+### Clean values
+
+```{r}
+
+tall <- spread_tall %>% 
+  mutate(
+    delayed = readr::parse_number(delayed),
+    on.time = readr::parse_number(on.time) 
+  )
+
+```
+#### References
+1. https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html
+
+
+
+
+
+## Section 4: Analysis {.tabset}
+
+Given that only frequency data was given to us, creating linear models was difficult. Nonetheless, it was clear to see that Alaska had less delays than AM West, and San Francisco and Seattle had the most percentage of delay. While SF, Seattle, and Phoenix had the most flights, both airlines had low delays relatively for Phoenix. Both airlines had a similar ratio of flights delays in each city.
+
+We can hypothesize this is due to fairly structural issues. We hypothesize that because of these re-occurring trends (ratios_ between airlines in different cities that within the frequency data, we will not see any crises that occurred to one airline and not the other. The differences are therefore probably logistical. 
+
+### Exploration
+
+1. Calculate the percentage of flights delayed per airline and per airport as percentage delayed
+2. Show the percentages in a cross table
+```{r}
+explore <-tall
+explore["delayed_perc"] <- 100* (explore$delayed / (explore$delayed + explore$on.time))
+
+kable(explore)
+
+p_delay_total <- explore %>%
+  group_by(airline, city)%>%
+  summarise(n=delayed_perc) %>%
+  spread(city, n)%>%
+  kable()
+
+p_delay_total
+
+
+
+cat("range", range(explore$delayed_perc),"\n")
+summary(explore$delayed_perc)
+boxplot(explore$delayed_perc)
+
+#install.packages("gmodels")
+#library(gmodels)
+#CrossTable()
+```
+
+
+
+### Visualization
+
+
+#### Beeswarm
+
+1. Using ggbeesarm package, plot a scatterplot 
+2. Using ggthemes package, set the them and color the graph
+3. Using ggplot2 plot the delayed percentage per city and per airline in a scatterplot
+```{r}
+ggplot(explore, aes(city, delayed_perc, fill=airline, color=airline)) + 
+  geom_quasirandom()
+```
+
+#### Bar Chart
+
+1. Using ggplot2 plot the delayed percentage per city and per airline in a bar chart
+
+```{r}
+ggplot(explore, aes(x = airline, y = delayed_perc)) +
+  geom_bar(aes(fill = airline), stat = "identity", color = "white",position = position_dodge(0.9)) +
+  facet_wrap(~city) 
+
+```
+
+##### References
+
+1. http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization
+
+
+
+

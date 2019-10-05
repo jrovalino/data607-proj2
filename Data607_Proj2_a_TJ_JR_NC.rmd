@@ -106,7 +106,8 @@ head(winnings)
 
 # drop rows where winning numbers have alpha to remove descriptive text
 ```{r}
-str_subset(winnings$num1, "[[:alpha:]]") # return matching values
+clean.winnings = filter(winnings, !grepl("First", num1)) # remove rows with string "First", which are unique to descriptive text
+head(clean.winnings)
 ```
 
 *** don't need this - clean up later. 

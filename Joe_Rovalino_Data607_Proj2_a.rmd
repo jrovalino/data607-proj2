@@ -51,27 +51,14 @@ df
 ##### NC note: happy to host the mysql db in my aws and share pw via lastpass so we can mutually reference a common table.
 ```{r}
 raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
-raw_data
+nrow(na.omit(raw_data))
+head(raw_data)
 ```
 
 # initial observations on state of raw data:
 * we know that there is variance in header count, where data from 2012 to 2014 has one less header "Power Play"
 * rows that represent drawings from 2012 to 2014 have value "0" where header is "Power Play" / column position is 11
 * column 1 is not useful
-
-# add headers 
-```{r}
-names(raw_data) <- c("game_name", "month", "day", "year", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play")
-head(raw_data)
-```
-
-# list of potential questions we can ask / potential visualizations
-* distribution of numbers across day, month, year
-* distribution of numbers (how "random"/normally distributed is number selection?)
-* what is prize size across time? (would need joining against secondary data source: https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html)
-* what is powerball distribution across time? 
-* what is the range of numbers within each of the 5 numbers? against powerball? against power play?
-* what is likelihood of out-of-state winner?
 
 # scrape table with estimated jackpot winnings
 ```{r}
@@ -80,8 +67,33 @@ library(rvest)
 url <- "https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html"
 winnings <- xml2::read_html(url)
 winnings <- rvest::html_table(winnings)[[1]]
+nrow(na.omit(raw_data))
 head(winnings)
 ```
+
+# observations on both data sets collected so far:
+* after omitting rows with missing data, there is row count parity
+* "estimated jackpot" column contains values that require transformation into numeric representation
+* "jackpot option" column contains "CVO" value, which indicates whether the winner took the lump sum over annual payments
+* "winning numbers" column headers will require transformation in unique values by position
+* in "jackpot winners" column, value "roll" indicates a roll-over, where no winner was selected (ref: https://answers.yahoo.com/question/index?qid=20110429210210AA8Y824&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZWNvc2lhLm9yZy8&guce_referrer_sig=AQAAAB6jQ-NGhdyMOMlFbNTSrqAgIkL-1JtAQoQyaGrwCWYspY8f3mDVzHJjsZ0enRMo17Ww9cYAzc2fmAKhcEkhTGArfXiiOZfMk1Du9658VBZZg5ZU8MjAsbaLY15qkJ4zaGU10aXtW5Fqm0qsgJvVSsPIX5_CI5veEM03FoI_h1lC). 
+* where "jackpot option" value is "CVO", it is also possible to spot a value indicating the number of "jackpot winners"
+
+# list of potential questions we can ask / potential visualizations
+* likelihood of "out of state winner" vs presumably "in state winner"
+* average number of rolls and time between winners, grouped by type of winner
+* how has growth of jackpot size between wins changed over time?
+* distribution of numbers (how "random"/normally distributed is number selection?)
+
+# update headers 
+```{r}
+names(winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_winners", "jackpot_options")
+head(winnings)
+```
+
+
+
+
 
 *** don't need this - clean up later. 
 #write to CSV file for upload to grading site. Will also upload sql #script used to create the DB #table.

@@ -1,0 +1,135 @@
+---
+title: "Data607_Proj2"
+author: "Joe_Rovalino, Tamiko Jenkins and Nicholas Chung"
+date: "10/02/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Relevant Information:
+The Powerball lottery was loaded into MySQL DB and describes Powerball winning numbers over a period of Feb 3rd to the present. 
+(1) Created a MySQL database that includes all of the information above. - CHOSE to load to MySQL and use the lesson from homework 2 to create DB.
+(2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy
+and transform your data.
+(3) Perform analysis to compare the numbers in the various position of the powerball winning number.
+(4) Code will be in an R Markdown file, posted to rpubs.com, and will include narrative
+descriptions of your data cleanup work, analysis, and conclusions. We will include in our
+project submission:
+The URL to the .Rmd file in your GitHub repository. and
+The URL for your rpubs.com web page.
+
+```{r}
+library(getPass)
+library(RMySQL)
+
+db_user <- 'root'
+db_password <- getPass::getPass("Enter the password: ") 
+db_name <- 'data607proj2'
+db_table <- 'powerball'
+db_host <- '127.0.0.1' # for local access
+db_port <- 3306
+
+mydb <-  dbConnect(MySQL(), user = db_user, password = db_password,
+                 dbname = db_name, host = db_host, port = db_port)
+
+s <- paste0("select * from ", db_table)
+rs <- dbSendQuery(mydb, s)
+df <-  fetch(rs, n = -1)
+on.exit(dbDisconnect(mydb))
+
+df
+```
+
+# load csv into mem for ad hoc EDA. 
+##### NC note: happy to host the mysql db in my aws and share pw via lastpass so we can mutually reference a common table.
+```{r}
+raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
+nrow(na.omit(raw_data))
+head(raw_data)
+```
+
+# initial observations on state of raw data:
+* we know that there is variance in header count, where data from 2012 to 2014 has one less header "Power Play"
+* rows that represent drawings from 2012 to 2014 have value "0" where header is "Power Play" / column position is 11
+* column 1 is not useful
+
+# scrape table with estimated jackpot winnings
+```{r}
+library(xml2)
+library(rvest)
+url <- "https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html"
+winnings <- xml2::read_html(url)
+winnings <- rvest::html_table(winnings)[[1]]
+nrow(na.omit(raw_data))
+head(winnings)
+```
+
+# observations on both data sets collected so far:
+* after omitting rows with missing data, there is row count parity
+* "estimated jackpot" column contains values that require transformation into numeric representation
+* "jackpot option" column contains "CVO" value, which indicates whether the winner took the lump sum over annual payments
+* "winning numbers" column headers will require transformation in unique values by position
+* in "jackpot winners" column, value "roll" indicates a roll-over, where no winner was selected (ref: https://answers.yahoo.com/question/index?qid=20110429210210AA8Y824&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZWNvc2lhLm9yZy8&guce_referrer_sig=AQAAAB6jQ-NGhdyMOMlFbNTSrqAgIkL-1JtAQoQyaGrwCWYspY8f3mDVzHJjsZ0enRMo17Ww9cYAzc2fmAKhcEkhTGArfXiiOZfMk1Du9658VBZZg5ZU8MjAsbaLY15qkJ4zaGU10aXtW5Fqm0qsgJvVSsPIX5_CI5veEM03FoI_h1lC). 
+* where "jackpot option" value is "CVO", it is also possible to spot a value indicating the number of "jackpot winners"
+
+# list of potential questions we can ask / potential visualizations
+* likelihood of "out of state winner" vs presumably "in state winner"
+* average number of rolls and time between winners, grouped by type of winner
+* how has growth of jackpot size between wins changed over time?
+* distribution of numbers (how "random"/normally distributed is number selection?)
+
+# update headers 
+```{r}
+names(winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_winners", "jackpot_options")
+head(winnings)
+```
+
+
+
+
+
+*** don't need this - clean up later. 
+# https://tibble.tidyverse.org/
+# Tidy work. Use Control Shift M for #shortcut to pipes
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+pb_df <- as_tibble(df)
+pb_df
+
+```
+
+#check gather worked on each position to create a data frame for each num position
+#pb_df %>% gather(num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, - Powerball)
+# select gets rid of Game Name field
+#spread to widen 
+
+```{r}
+
+# Group the data by position - not working yet
+
+pbnum1 <- pb_df %>% gather(Num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, -Powerball) 
+pbnum1
+```
+%>% select (Num1,count)
+
+
+***** BELOW IS GARBAGE needs to be deleted cleaned - oly left for reference to syntax
+pbnum1<- pb_df %>% select(Num1, count) %>% group_by(Num1) 
+pbnum2 <- pb_df %>% gather(Num2, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num3,-Num4, -Num5, -Powerball) %>% select (Num2, count)
+pbnum3 <- pb_df %>% gather(Num3, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num4, -Num5, -Powerball) %>% select (Num3, count)
+pbnum4 <- pb_df %>% gather(Num4, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num5, -Powerball) %>% select (Num4, count)
+pbnum5 <- pb_df %>% gather(Num5, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Powerball) %>% select (Num5, count)
+pbPball <- pb_df %>% gather(Powerball, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Num5) %>% select (Powerball, count)
+

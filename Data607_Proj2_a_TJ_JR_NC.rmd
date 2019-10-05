@@ -9,6 +9,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(stringr)
 ```
 
 ## R Markdown
@@ -88,12 +91,23 @@ head(winnings)
 # update headers 
 ```{r}
 names(winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_winners", "jackpot_options")
+winnings
+```
+
+# transform "est_jackpot" into numeric values
+```{r}
+table(winnings$est_jackpot) # check distribution of values to identify values that need replacing
+
+winnings$est_jackpot <- sub(" Million", "000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
+winnings$est_jackpot <- sub(" Billion", "000000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
+winnings$est_jackpot <- as.numeric(sub("\\$", "", winnings$est_jackpot)) # transform class to numeric
 head(winnings)
 ```
 
-
-
-
+# drop rows where winning numbers have alpha to remove descriptive text
+```{r}
+str_subset(winnings$num1, "[[:alpha:]]") # return matching values
+```
 
 *** don't need this - clean up later. 
 # https://tibble.tidyverse.org/

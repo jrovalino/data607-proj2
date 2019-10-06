@@ -54,6 +54,8 @@ df
 ##### NC note: happy to host the mysql db in my aws and share pw via lastpass so we can mutually reference a common table.
 ```{r}
 raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
+#nrow(raw_data)
+#?na.omit
 nrow(na.omit(raw_data))
 head(raw_data)
 ```
@@ -97,11 +99,12 @@ winnings
 # transform "est_jackpot" into numeric values
 ```{r}
 table(winnings$est_jackpot) # check distribution of values to identify values that need replacing
-
+#?sub
 winnings$est_jackpot <- sub(" Million", "000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
 winnings$est_jackpot <- sub(" Billion", "000000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
 winnings$est_jackpot <- as.numeric(sub("\\$", "", winnings$est_jackpot)) # transform class to numeric
 head(winnings)
+winnings
 ```
 
 # drop rows where winning numbers have alpha to remove descriptive text
@@ -109,16 +112,19 @@ head(winnings)
 clean.winnings = filter(winnings, !grepl("First", num1)) # remove rows with string "First", which are unique to descriptive text
 head(clean.winnings)
 ```
-
-*** don't need this - clean up later. 
-# https://tibble.tidyverse.org/
-# Tidy work. Use Control Shift M for #shortcut to pipes
-
 ```{r}
-library(tidyverse)
-library(dplyr)
-```
+#change datatypes to integer. moving to cw data frame to isolate anything JR is doing that rest don't like. 
+library(lubridate)
 
+cw <- clean.winnings
+cw
+
+cw<- cw %>% mutate_at(vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot), funs(as.integer))
+cw
+
+cw<- cw %>%mutate(draw_date = as.Date(cw$draw_date,format="%m/%d/%Y")) %>% 
+mutate_at(vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot), funs(as.integer))
+cw
 ```{r}
 pb_df <- as_tibble(df)
 pb_df

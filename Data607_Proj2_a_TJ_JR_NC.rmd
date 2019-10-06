@@ -140,15 +140,15 @@ pb_df
 # Group the data by position - to detemine number value and count occurance of number in the position
 library(ggplot2)
 
-jkpt_temp <- pb_df %>% group_by (jackpot_winners) %>% summarize (n()) 
+names(jkpt_temp) <- c("jackpot_winners", "count")
 jkpt_temp
- 
-ggplot(jkpt_temp, aes(fill=airline, y=jackpot_winners, x=n())) +
-    ggtitle("Ontime by City") +
-    theme(plot.title = element_text(hjust = 0.5)) + 
-    geom_bar(position='dodge', stat="identity") +
-    xlab('City') + 
-    ylab('Percent of Flights On time')
+
+ggplot(jkpt_temp, aes(fill=jackpot_winners, y=jackpot_winners, x=count)) +
+   ggtitle("Jackput Winners") +
+   theme(plot.title = element_text(hjust = 0.5)) +
+   geom_bar(position='dodge', stat="identity") +
+   xlab('Jackput Winners') +
+   ylab('Count')
 
 # frequency position integers
 freq_num1 <- pb_df %>% group_by (num1) %>% summarize (n())

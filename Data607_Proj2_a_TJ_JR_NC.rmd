@@ -136,15 +136,28 @@ pb_df
 #spread to widen 
 
 ```{r}
-
+# Commence analysis of data
 # Group the data by position - to detemine number value and count occurance of number in the position
+library(ggplot2)
 
+jkpt_temp <- pb_df %>% group_by (jackpot_winners) %>% summarize (n()) 
+jkpt_temp
+ 
+ggplot(jkpt_temp, aes(fill=airline, y=jackpot_winners, x=n())) +
+    ggtitle("Ontime by City") +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    geom_bar(position='dodge', stat="identity") +
+    xlab('City') + 
+    ylab('Percent of Flights On time')
+
+# frequency position integers
 freq_num1 <- pb_df %>% group_by (num1) %>% summarize (n())
 freq_num2 <- pb_df %>% group_by (num2) %>% summarize (n())
 freq_num3 <- pb_df %>% group_by (num3) %>% summarize (n())
 freq_num4 <- pb_df %>% group_by (num4) %>% summarize (n())
 freq_num5 <- pb_df %>% group_by (num5) %>% summarize (n())
 freq_powerball <- pb_df %>% group_by (powerball) %>% summarize (n())
+# view into wheather gambler should purchase for aaddiitonal monies the powerplay option
 freq_power_play <- pb_df %>% group_by (power_play) %>% summarize (n())
 freq_power_play
 ```

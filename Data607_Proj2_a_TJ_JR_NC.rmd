@@ -119,14 +119,13 @@ library(lubridate)
 cw <- clean.winnings
 cw
 
-cw<- cw %>% mutate_at(vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot), funs(as.integer))
-cw
-
 cw<- cw %>%mutate(draw_date = as.Date(cw$draw_date,format="%m/%d/%Y")) %>% 
 mutate_at(vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot), funs(as.integer))
 cw
+```
+
 ```{r}
-pb_df <- as_tibble(df)
+pb_df <- as_tibble(cw)
 pb_df
 
 ```
@@ -138,19 +137,14 @@ pb_df
 
 ```{r}
 
-# Group the data by position - not working yet
+# Group the data by position - to detemine number value and count occurance of number in the position
 
-pbnum1 <- pb_df %>% gather(Num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, -Powerball) 
-pbnum1
+freq_num1 <- pb_df %>% group_by (num1) %>% summarize (n())
+freq_num2 <- pb_df %>% group_by (num2) %>% summarize (n())
+freq_num3 <- pb_df %>% group_by (num3) %>% summarize (n())
+freq_num4 <- pb_df %>% group_by (num4) %>% summarize (n())
+freq_num5 <- pb_df %>% group_by (num5) %>% summarize (n())
+freq_powerball <- pb_df %>% group_by (powerball) %>% summarize (n())
+freq_power_play <- pb_df %>% group_by (power_play) %>% summarize (n())
+freq_power_play
 ```
-%>% select (Num1,count)
-
-
-***** BELOW IS GARBAGE needs to be deleted cleaned - oly left for reference to syntax
-pbnum1<- pb_df %>% select(Num1, count) %>% group_by(Num1) 
-pbnum2 <- pb_df %>% gather(Num2, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num3,-Num4, -Num5, -Powerball) %>% select (Num2, count)
-pbnum3 <- pb_df %>% gather(Num3, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num4, -Num5, -Powerball) %>% select (Num3, count)
-pbnum4 <- pb_df %>% gather(Num4, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num5, -Powerball) %>% select (Num4, count)
-pbnum5 <- pb_df %>% gather(Num5, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Powerball) %>% select (Num5, count)
-pbPball <- pb_df %>% gather(Powerball, count, -Game_Name, -Month, -Day, -Year, -Num1,-Num2,-Num3, -Num4, -Num5) %>% select (Powerball, count)
-

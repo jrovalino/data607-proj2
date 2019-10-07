@@ -152,6 +152,7 @@ pb_df <- as_tibble(tw)
 pb_df
 ```
 
+<<<<<<< HEAD
 # commence analysis of data
 #### questions:
 * distribution of numbers (how "random"/normally distributed is number selection?)
@@ -171,6 +172,17 @@ ggplot(jkpt_temp, aes(fill=status, y=count, x=status)) +
   xlab('jackpot winners') +
   ylab('count')
 ```
+=======
+names(jkpt_temp) <- c("jackpot_winners", "count")
+jkpt_temp
+
+ggplot(jkpt_temp, aes(fill=jackpot_winners, y=jackpot_winners, x=count)) +
+   ggtitle("Jackput Winners") +
+   theme(plot.title = element_text(hjust = 0.5)) +
+   geom_bar(position='dodge', stat="identity") +
+   xlab('Jackput Winners') +
+   ylab('Count')
+>>>>>>> b8c92a191670575e671b9567ffe9bd56d896b29c
 
 ```{r}
 # frequency position integers

@@ -10,6 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
+library(reshape2)
 library(xml2)
 library(rvest)
 library(ggplot2)
@@ -35,6 +36,7 @@ raw_data
 * values in certain columns, like "Believe in God; don't know" contain non-numeric values; round those to .5% for illustration purposes
 * to obtain counts, should calculate fractional count per percentage value
 * for easier analysis, one could tidy the dataset such that there are three buckets of certainty as opposed to six 
+* it is also possible to melt the dataset to produce a tall dataset for analysis as well
 
 # update headers 
 ```{r}
@@ -74,12 +76,84 @@ raw_data$"don't_know" <- round(raw_data$"don't_know" * raw_data$"sample_size")
 raw_data$"certainly_not" <- round(raw_data$"certainly_not" * raw_data$"sample_size")
 raw_data$"other" <- round(raw_data$"other" * raw_data$"sample_size")
 raw_data
+
+wide.raw_data <- raw_data
 ```
 
 # create "yes", "no", "maybe" buckets
 ```{r}
-raw_data$"yes" <- raw_data$"most_certain" + raw_data$"fairly_certain" + raw_data$"not_certain"
-raw_data$"no" <- raw_data$"certainly_not" 
-raw_data$"maybe" <- raw_data$"don't_know" + raw_data$"other"
-raw_data
+wide.raw_data$"yes" <- raw_data$"most_certain" + raw_data$"fairly_certain" + raw_data$"not_certain"
+wide.raw_data$"no" <- raw_data$"certainly_not" 
+wide.raw_data$"maybe" <- raw_data$"don't_know" + raw_data$"other"
+wide.raw_data
 ```
+
+# commence analysis of data
+#### questions:
+* what is average certainty/uncertainty across income?
+* what is aggregate certainty/uncertainty across income?
+* what is aggregate certainty/uncertainty in total?
+```{r}
+# calculate average certainty
+avg.raw_data <- raw_data %>%
+select(income_distribution, most_certain, fairly_certain, not_certain, `don't_know`, certainly_not, other, sample_size) %>%
+group_by(income_distribution) %>%
+summarise(yes = mean(most_certain, fairly_certain, not_certain), maybe = mean(`don't_know`, other), no = mean(certainly_not))
+
+avg.raw_data
+```
+
+```{r}
+# calculate aggregate certainty
+agg.raw_data <- wide.raw_data %>%
+select(income_distribution, yes, no, maybe) %>%
+group_by(income_distribution) %>%
+summarise(yes = sum(yes), maybe = sum(maybe), no = sum(no))
+
+agg.raw_data
+```
+
+```{r}
+# melt aggregate certainty table
+m.wide.raw_data <- melt(agg.raw_data)
+names(m.wide.raw_data) <- c("income_dist", "certainty", "count")
+m.wide.raw_data
+```
+
+```{r}
+# melt raw certainty table
+m.raw_data <- melt(raw_data)
+names(m.raw_data) <- c("income_dist", "certainty", "count")
+m.raw_data
+```
+
+```{r}
+# calculate all certainty regardless of income
+all.raw_data <- agg.raw_data %>%
+   select_if(is.numeric) %>%
+   summarise_all(funs(sum))
+
+all.raw_data
+```
+
+```{r}
+ggplot(m.wide.raw_data, aes(fill=certainty, y=count, x=certainty)) +
+  ggtitle("simplified distribution of certainty") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  facet_grid(.~income_dist) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('certainty by income') +
+  ylab('count')
+```
+
+```{r}
+ggplot(m.raw_data, aes(fill=certainty, y=count, x=certainty)) +
+  ggtitle("specific distribution of certainty") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  facet_grid(.~income_dist) +
+  geom_bar(position='dodge', stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) + # rotate x-axis labels
+  xlab('certainty by income') +
+  ylab('count')
+```
+

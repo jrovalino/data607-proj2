@@ -1,0 +1,85 @@
+---
+title: "Data607_Proj3"
+author: "Joe_Rovalino, Tamiko Jenkins and Nicholas Chung"
+date: "10/02/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(xml2)
+library(rvest)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+```
+
+# summary
+#### scrape, tidy, clean, analyze, and visualize table with untidy data representing distribution of income across differing degrees of belief in God.
+
+# methods
+# scrape table associated with below chart 
+![source: belief in God by household income](belief_in_god_by_income.png)
+```{r}
+# load csv approximation of table into memory
+raw_data <- read.csv("belief_in_god_by_income.csv", sep = ",")#, check.names = FALSE)
+raw_data
+```
+
+# initial observations on state of raw data:
+* can likely retain semantic value of column headers if change names to likert scale representation (or equivalent qualitative abstraction) of "intensity of belief"
+* values in certain columns, like "Believe in God; don't know" contain non-numeric values; round those to .5% for illustration purposes
+* to obtain counts, should calculate fractional count per percentage value
+* for easier analysis, one could tidy the dataset such that there are three buckets of certainty as opposed to six 
+
+# update headers 
+```{r}
+names(raw_data) <- c("income_distribution", "most_certain", "fairly_certain", "not_certain", "don't_know", "certainly_not", "other", "sample_size")
+raw_data
+```
+
+# transform percentage values into numeric counts
+```{r}
+raw_data$"don't_know"<- sub("< 1%", ".5", raw_data$"don't_know") # replace "< 1" with arbitrary character
+raw_data$"don't_know"<- sub("%", "", raw_data$"don't_know") # replace "%"
+raw_data$"don't_know" <- as.numeric(raw_data$"don't_know")
+raw_data$"most_certain"<- sub("%", "", raw_data$"most_certain") #remove "%"
+raw_data$"most_certain" <- as.numeric(raw_data$"most_certain")
+raw_data$"fairly_certain"<- sub("%", "", raw_data$"fairly_certain") # replace "%"
+raw_data$"fairly_certain" <- as.numeric(raw_data$"fairly_certain")
+raw_data$"not_certain"<- sub("%", "", raw_data$"not_certain") # replace "%"
+raw_data$"not_certain"<- as.numeric(raw_data$"not_certain") 
+raw_data$"certainly_not"<- sub("%", "", raw_data$"certainly_not") # replace "%"
+raw_data$"certainly_not" <- as.numeric(raw_data$"certainly_not")
+raw_data$"other"<- sub("%", "", raw_data$"other") # replace "%" 
+raw_data$"other" <- as.numeric(raw_data$"other")
+raw_data
+
+# divide relevant values by 100
+divide_by_100 <- function(x) (x / 100) 
+raw_data <- raw_data %>% mutate_at(
+  c("most_certain", "fairly_certain", "not_certain", "don't_know", "certainly_not", "other"), 
+  divide_by_100
+  )
+
+# multiple relevant values by sample size
+raw_data$"most_certain" <- round(raw_data$"most_certain" * raw_data$"sample_size")
+raw_data$"fairly_certain" <- round(raw_data$"fairly_certain" * raw_data$"sample_size")
+raw_data$"not_certain" <- round(raw_data$"not_certain" * raw_data$"sample_size")
+raw_data$"don't_know" <- round(raw_data$"don't_know" * raw_data$"sample_size")
+raw_data$"certainly_not" <- round(raw_data$"certainly_not" * raw_data$"sample_size")
+raw_data$"other" <- round(raw_data$"other" * raw_data$"sample_size")
+raw_data
+```
+
+# create "yes", "no", "maybe" buckets
+```{r}
+raw_data$"yes" <- raw_data$"most_certain" + raw_data$"fairly_certain" + raw_data$"not_certain"
+raw_data$"no" <- raw_data$"certainly_not" 
+raw_data$"maybe" <- raw_data$"don't_know" + raw_data$"other"
+raw_data
+```

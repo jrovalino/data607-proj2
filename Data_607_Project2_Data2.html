@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Nicholas Chung, Joe Rovalino, T. Jenkins" />
@@ -86,8 +87,6 @@ overflow: auto;
 margin-left: 2%;
 position: fixed;
 border: 1px solid #ccc;
-webkit-border-radius: 6px;
-moz-border-radius: 6px;
 border-radius: 6px;
 }
 
@@ -115,9 +114,14 @@ font-size: 12px;
 .tocify-subheader .tocify-subheader {
 text-indent: 30px;
 }
-
 .tocify-subheader .tocify-subheader .tocify-subheader {
 text-indent: 40px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 50px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 60px;
 }
 
 .tocify .tocify-item > a, .tocify .nav-list .nav-header {
@@ -521,13 +525,13 @@ float: none;
 
           item.append($("<a/>", {
 
-            "text": self.text()
+            "html": self.html()
 
           }));
 
         } else {
 
-          item.text(self.text());
+          item.html(self.html());
 
         }
 
@@ -1302,7 +1306,7 @@ window.initializeCodeFolding = function(show) {
 
     // create a collapsable div to wrap the code in
     var div = $('<div class="collapse r-code-collapse"></div>');
-    if (show)
+    if (show || $(this)[0].classList.contains('fold-show'))
       div.addClass('in');
     var id = 'rcode-643E0F36' + currentIndex++;
     div.attr('id', id);
@@ -1440,7 +1444,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -1500,7 +1504,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -1574,57 +1577,12 @@ summary {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeSourceEmbed("Data_607_Project2_Data2.rmd");
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -1673,8 +1631,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -1785,7 +1741,7 @@ div.tocify {
 ## 23   22                                                   Mauritius  1
 ## 24   23                                                     Mayotte   
 ## 25   24                                                  Mozambique   
-## 26   25                                                    RÃ©union   
+## 26   25                                                     Réunion   
 ## 27   26                                                      Rwanda   
 ## 28   27                                                  Seychelles   
 ## 29   28                                                     Somalia   
@@ -1822,7 +1778,7 @@ div.tocify {
 ## 60   59                                                       Benin   
 ## 61   60                                                Burkina Faso   
 ## 62   61                                                  Cabo Verde   
-## 63   62                                              CÃ´te d'Ivoire   
+## 63   62                                               Côte d'Ivoire   
 ## 64   63                                                      Gambia   
 ## 65   64                                                       Ghana   
 ## 66   65                                                      Guinea   
@@ -1956,7 +1912,7 @@ div.tocify {
 ## 194 193                                       Caribbean Netherlands 22
 ## 195 194                                              Cayman Islands   
 ## 196 195                                                        Cuba   
-## 197 196                                                    CuraÃ§ao   
+## 197 196                                                     Curaçao   
 ## 198 197                                                    Dominica   
 ## 199 198                                          Dominican Republic   
 ## 200 199                                                     Grenada   
@@ -2308,7 +2264,14 @@ div.tocify {
 <h1><span class="header-section-number">1</span> Tidy</h1>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co">#gets the region (non-country) info to inspect into a data frame for removal so that we can be left with country data only. </span></a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">?filter</a></code></pre></div>
-<pre><code>## starting httpd help server ... done</code></pre>
+<pre><code>## Help on topic 'filter' was found in the following packages:
+## 
+##   Package               Library
+##   dplyr                 /Library/Frameworks/R.framework/Versions/3.6/Resources/library
+##   stats                 /Library/Frameworks/R.framework/Versions/3.6/Resources/library
+## 
+## 
+## Using the first match ...</code></pre>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"> df_not_na &lt;-<span class="st"> </span>df <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span> (V5 <span class="op">!=</span><span class="st"> &quot;&quot;</span> )</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2"> df_not_na</a></code></pre></div>
 <pre><code>##      V1                                 V2 V3  V4    V5   V6   V7   V8
@@ -2323,7 +2286,7 @@ div.tocify {
 ## 9    22                          Mauritius  1 480     C 51.2 56.9 63.3
 ## 10   23                            Mayotte    175     B 42.3 44.2 48.2
 ## 11   24                         Mozambique    508   B R 46.0 45.8 47.3
-## 12   25                           RÃ©union    638     B 46.3 47.2 48.1
+## 12   25                            Réunion    638     B 46.3 47.2 48.1
 ## 13   26                             Rwanda    646   B R 49.5 49.4 49.4
 ## 14   27                         Seychelles    690     B 40.8 41.3 41.6
 ## 15   28                            Somalia    706   I R 48.9 47.3 47.1
@@ -2356,7 +2319,7 @@ div.tocify {
 ## 42   59                              Benin    204 C B R 47.4 46.8 46.4
 ## 43   60                       Burkina Faso    854   B R 52.0 51.9 51.8
 ## 44   61                         Cabo Verde    132     B 50.4 49.0 47.8
-## 45   62                     CÃ´te d'Ivoire    384   C B 44.3 44.6 44.6
+## 45   62                      Côte d'Ivoire    384   C B 44.3 44.6 44.6
 ## 46   63                             Gambia    270     B 43.9 45.6 46.8
 ## 47   64                              Ghana    288     B 49.6 49.6 49.2
 ## 48   65                             Guinea    324   C R 50.1 50.1 50.2
@@ -2477,7 +2440,7 @@ div.tocify {
 ## 163 193              Caribbean Netherlands 22 535     B 55.1 55.4 55.7
 ## 164 194                     Cayman Islands    136     C 50.8 50.0 49.6
 ## 165 195                               Cuba    192     B 50.0 52.0 56.0
-## 166 196                           CuraÃ§ao    531     B   ..   ..   ..
+## 166 196                            Curaçao    531     B   ..   ..   ..
 ## 167 197                           Dominica    212     B 48.0 48.0 47.5
 ## 168 198                 Dominican Republic    214     B 37.6 38.5 39.3
 ## 169 199                            Grenada    308     B 50.6 50.5 50.4
@@ -2793,7 +2756,7 @@ div.tocify {
 ## 9           22                          Mauritius     1          480
 ## 10          23                            Mayotte                175
 ## 11          24                         Mozambique                508
-## 12          25                           RÃ©union                638
+## 12          25                            Réunion                638
 ## 13          26                             Rwanda                646
 ## 14          27                         Seychelles                690
 ## 15          28                            Somalia                706
@@ -2826,7 +2789,7 @@ div.tocify {
 ## 42          59                              Benin                204
 ## 43          60                       Burkina Faso                854
 ## 44          61                         Cabo Verde                132
-## 45          62                     CÃ´te d'Ivoire                384
+## 45          62                      Côte d'Ivoire                384
 ## 46          63                             Gambia                270
 ## 47          64                              Ghana                288
 ## 48          65                             Guinea                324
@@ -2947,7 +2910,7 @@ div.tocify {
 ## 163        193              Caribbean Netherlands    22          535
 ## 164        194                     Cayman Islands                136
 ## 165        195                               Cuba                192
-## 166        196                           CuraÃ§ao                531
+## 166        196                            Curaçao                531
 ## 167        197                           Dominica                212
 ## 168        198                 Dominican Republic                214
 ## 169        199                            Grenada                308
@@ -3518,28 +3481,28 @@ div.tocify {
 ## 31         135                           Bulgaria                100
 ## 32          60                       Burkina Faso                854
 ## 33          14                            Burundi                108
-## 34          62                     CÃ´te d'Ivoire                384
-## 35          61                         Cabo Verde                132
-## 36         103                           Cambodia                116
-## 37          36                           Cameroon                120
-## 38         239                             Canada                124
-## 39         193              Caribbean Netherlands    22          535
-## 40         194                     Cayman Islands                136
-## 41          37           Central African Republic                140
-## 42          38                               Chad                148
-## 43         145                    Channel Islands    15          830
-## 44         226                              Chile                152
-## 45          84                              China     5          156
-## 46          85               China, Hong Kong SAR     6          344
-## 47          86                   China, Macao SAR     7          446
-## 48         227                           Colombia                170
-## 49          15                            Comoros                174
-## 50          39                              Congo                178
-## 51         263                       Cook Islands                184
-## 52         215                         Costa Rica                188
+## 34          61                         Cabo Verde                132
+## 35         103                           Cambodia                116
+## 36          36                           Cameroon                120
+## 37         239                             Canada                124
+## 38         193              Caribbean Netherlands    22          535
+## 39         194                     Cayman Islands                136
+## 40          37           Central African Republic                140
+## 41          38                               Chad                148
+## 42         145                    Channel Islands    15          830
+## 43         226                              Chile                152
+## 44          84                              China     5          156
+## 45          85               China, Hong Kong SAR     6          344
+## 46          86                   China, Macao SAR     7          446
+## 47         227                           Colombia                170
+## 48          15                            Comoros                174
+## 49          39                              Congo                178
+## 50         263                       Cook Islands                184
+## 51         215                         Costa Rica                188
+## 52          62                      Côte d'Ivoire                384
 ## 53         162                            Croatia                191
 ## 54         195                               Cuba                192
-## 55         196                           CuraÃ§ao                531
+## 55         196                            Curaçao                531
 ## 56         117                             Cyprus    10          196
 ## 57         136                            Czechia                203
 ## 58          87    Dem. People's Republic of Korea                408
@@ -3651,9 +3614,9 @@ div.tocify {
 ## 164        169                           Portugal                620
 ## 165        205                        Puerto Rico                630
 ## 166        125                              Qatar                634
-## 167         25                           RÃ©union                638
-## 168         90                  Republic of Korea                410
-## 169        139                Republic of Moldova    13          498
+## 167         90                  Republic of Korea                410
+## 168        139                Republic of Moldova    13          498
+## 169         25                            Réunion                638
 ## 170        140                            Romania                642
 ## 171        141                 Russian Federation                643
 ## 172         26                             Rwanda                646
@@ -3751,25 +3714,25 @@ div.tocify {
 ## 31           B       57.9       57.9       57.9       56.5       55.6
 ## 32         B R       52.0       51.9       51.8       52.2       52.4
 ## 33         B R       51.0       51.3       51.4       50.9       50.8
-## 34         C B       44.3       44.6       44.6       44.6       44.6
-## 35           B       50.4       49.0       47.8       48.6       49.3
-## 36           B       50.3       50.8       51.0       49.6       47.1
-## 37         B C       45.2       45.3       45.4       45.0       44.6
-## 38           B       51.3       51.6       51.8       52.0       52.1
-## 39           B       55.1       55.4       55.7       55.7       51.7
-## 40           C       50.8       50.0       49.6       49.2       48.8
-## 41           C       46.9       46.9       46.9       46.8       46.8
-## 42         B R       46.0       46.1       46.1       54.6       55.2
-## 43           B       53.0       53.0       53.0       52.6       52.3
-## 44           B       49.3       51.1       52.2       52.7       52.9
-## 45           C       49.0       49.6       50.0       44.0       40.5
-## 46           B       49.3       51.9       54.1       56.4       58.7
-## 47           B       53.0       53.9       54.6       53.3       54.0
-## 48           B       49.1       48.9       48.7       48.2       47.2
-## 49           B       52.3       52.6       52.8       52.4       52.0
-## 50           B       50.3       50.0       49.9       45.6       45.6
-## 51           B       44.2       44.3       44.3       47.4       49.7
-## 52         B R       49.2       49.4       49.6       50.8       51.7
+## 34           B       50.4       49.0       47.8       48.6       49.3
+## 35           B       50.3       50.8       51.0       49.6       47.1
+## 36         B C       45.2       45.3       45.4       45.0       44.6
+## 37           B       51.3       51.6       51.8       52.0       52.1
+## 38           B       55.1       55.4       55.7       55.7       51.7
+## 39           C       50.8       50.0       49.6       49.2       48.8
+## 40           C       46.9       46.9       46.9       46.8       46.8
+## 41         B R       46.0       46.1       46.1       54.6       55.2
+## 42           B       53.0       53.0       53.0       52.6       52.3
+## 43           B       49.3       51.1       52.2       52.7       52.9
+## 44           C       49.0       49.6       50.0       44.0       40.5
+## 45           B       49.3       51.9       54.1       56.4       58.7
+## 46           B       53.0       53.9       54.6       53.3       54.0
+## 47           B       49.1       48.9       48.7       48.2       47.2
+## 48           B       52.3       52.6       52.8       52.4       52.0
+## 49           B       50.3       50.0       49.9       45.6       45.6
+## 50           B       44.2       44.3       44.3       47.4       49.7
+## 51         B R       49.2       49.4       49.6       50.8       51.7
+## 52         C B       44.3       44.6       44.6       44.6       44.6
 ## 53         B R       53.2       53.2       53.0       53.1       53.2
 ## 54           B       50.0       52.0       56.0       55.7       55.4
 ## 55           B         ..         ..         ..         ..       59.0
@@ -3884,9 +3847,9 @@ div.tocify {
 ## 164          B       51.8       51.3       50.8       51.1       51.3
 ## 165          B       52.4       52.5       52.5       52.6       53.1
 ## 166          C       27.1       25.4       23.8       22.8       17.2
-## 167          B       46.3       47.2       48.1       48.6       49.0
-## 168          C       43.7       42.9       41.4       41.5       42.9
-## 169          B       56.0       56.0       56.0       56.0       61.6
+## 167          C       43.7       42.9       41.4       41.5       42.9
+## 168          B       56.0       56.0       56.0       56.0       61.6
+## 169          B       46.3       47.2       48.1       48.6       49.0
 ## 170          B       57.6       53.1       52.4       54.4       50.7
 ## 171          B       50.9       50.3       49.7       50.2       50.7
 ## 172        B R       49.5       49.4       49.4       49.9       50.0
@@ -3984,25 +3947,25 @@ div.tocify {
 ## 31        55.6       55.6
 ## 32        52.4       52.4
 ## 33        50.7       50.7
-## 34        44.6       44.6
-## 35        49.4       49.4
-## 36        46.1       46.1
-## 37        50.6       50.6
-## 38        52.1       52.1
-## 39        51.6       51.6
-## 40        48.8       48.8
-## 41        47.1       47.0
-## 42        53.9       53.9
-## 43        52.2       52.2
-## 44        52.9       52.9
-## 45        38.6       38.6
-## 46        60.5       60.5
-## 47        54.6       54.6
-## 48        46.7       46.7
-## 49        51.6       51.6
-## 50        45.2       45.2
-## 51        50.0       49.9
-## 52        52.0       52.0
+## 34        49.4       49.4
+## 35        46.1       46.1
+## 36        50.6       50.6
+## 37        52.1       52.1
+## 38        51.6       51.6
+## 39        48.8       48.8
+## 40        47.1       47.0
+## 41        53.9       53.9
+## 42        52.2       52.2
+## 43        52.9       52.9
+## 44        38.6       38.6
+## 45        60.5       60.5
+## 46        54.6       54.6
+## 47        46.7       46.7
+## 48        51.6       51.6
+## 49        45.2       45.2
+## 50        50.0       49.9
+## 51        52.0       52.0
+## 52        44.6       44.6
 ## 53        53.6       53.7
 ## 54        55.4       55.4
 ## 55        58.9       58.9
@@ -4117,9 +4080,9 @@ div.tocify {
 ## 164       53.9       53.3
 ## 165       53.3       53.3
 ## 166       16.1       16.1
-## 167       49.3       49.3
-## 168       43.9       43.9
-## 169       64.6       64.6
+## 167       43.9       43.9
+## 168       64.6       64.6
+## 169       49.3       49.3
 ## 170       47.8       46.9
 ## 171       50.9       50.9
 ## 172       50.2       50.2
@@ -4197,7 +4160,7 @@ div.tocify {
 ## 9           22                          Mauritius     1          480
 ## 10          23                            Mayotte                175
 ## 11          24                         Mozambique                508
-## 12          25                           RÃ©union                638
+## 12          25                            Réunion                638
 ## 13          26                             Rwanda                646
 ## 14          27                         Seychelles                690
 ## 15          28                            Somalia                706
@@ -4230,7 +4193,7 @@ div.tocify {
 ## 42          59                              Benin                204
 ## 43          60                       Burkina Faso                854
 ## 44          61                         Cabo Verde                132
-## 45          62                     CÃ´te d'Ivoire                384
+## 45          62                      Côte d'Ivoire                384
 ## 46          63                             Gambia                270
 ## 47          64                              Ghana                288
 ## 48          65                             Guinea                324
@@ -4351,7 +4314,7 @@ div.tocify {
 ## 163        193              Caribbean Netherlands    22          535
 ## 164        194                     Cayman Islands                136
 ## 165        195                               Cuba                192
-## 166        196                           CuraÃ§ao                531
+## 166        196                            Curaçao                531
 ## 167        197                           Dominica                212
 ## 168        198                 Dominican Republic                214
 ## 169        199                            Grenada                308
@@ -4661,7 +4624,7 @@ div.tocify {
 ## 5        168           Montenegro                499          B       60.8</code></pre>
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkRhdGEgNjA3IC0gUHJvamVjdCAyIg0KYXV0aG9yOiAiTmljaG9sYXMgQ2h1bmcsIEpvZSBSb3ZhbGlubywgVC4gSmVua2lucyINCnN1YnRpdGxlOiAnRGF0YXNldCAyOiBJbW1pZ3JhdGlvbiBkYXRhJw0Kb3V0cHV0Og0KICBodG1sX2RvY3VtZW50Og0KICAgIGNvZGVfZG93bmxvYWQ6IHllcw0KICAgIGNvZGVfZm9sZGluZzogaGlkZQ0KICAgIGhpZ2hsaWdodDogcHlnbWVudHMNCiAgICBudW1iZXJfc2VjdGlvbnM6IHllcw0KICAgIHRoZW1lOiBmbGF0bHkNCiAgICB0b2M6IHllcw0KICAgIHRvY19mbG9hdDogeWVzDQogIHBkZl9kb2N1bWVudDoNCiAgICB0b2M6IHllcw0KLS0tDQoNCg0KYGBge3Igc2V0dXAsIGluY2x1ZGU9RkFMU0V9DQprbml0cjo6b3B0c19jaHVuayRzZXQoZWNobyA9IFRSVUUpDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeSh0aWR5cikNCmxpYnJhcnkoc3RyaW5ncikNCmBgYA0KDQoNClJlbGV2YW50IEluZm9ybWF0aW9uOg0KU3VnZ2VzdGlvbiBvZiBkYXRhIGJ5IGNsYXNzbWF0ZSAtIE1lbmdxaW4gQ2FpIA0KVGhlc2UgZGF0YSBzZXQgcHVibGlzaGVkIGJ5IHRoZSBVbml0ZWQgTmF0aW9uLCB3aGljaCBjYWxjdWxhdGVzIEZlbWFsZSBtaWdyYW50cyBhcyBhIHBlcmNlbnRhZ2Ugb2YgdGhlIGludGVybmF0aW9uYWwgbWlncmFudCBzdG9jayAuIFRoZSBkYXRhc2V0IGhhcyBzZXZlbiB2YXJpYWJsZXMsICBBcmVhLCBDb3VudHJ5LCBOb3RlcywgQ291bnRyeSBjb2RlLCBUeXBlIG9mIGRhdGEgKGEpLCBZZWFycywgUGVyY2VudGFnZS4gVGhpcyB0YWJsZSBjb21wYXJlcyBkaWZmZXJlbnQgY291bnRyaWVzJyBmZW1hbGUgbWlncmFudHMgYXMgYSBwZXJjZW50YWdlIG9mIHRoZSBpbnRlcm5hdGlvbmFsIG1pZ3JhbnQgc3RvY2sgYW5kIHNob3dzIHRoZWlyIGNoYW5nZXMgZnJvbSAxOTkwIHRvIDIwMTUuIFRoZSBkYXRhIGNvbWJpbmUgdGhlIGFyZWEgYW5kIGNvdW50cnkgd2l0aCB0aGUgc2FtZSBjb2x1bW4gYW5kIHNldCB5ZWFyIHZhbHVlcyBhcyBoZWFkZXIgbmFtZXMuIEl0IGlzIG5vdCBlYXN5IHRvIHByb2Nlc3MgdGhlIGRhdGEgaWYgd2Ugd2FudCB0byBjb21wYXJlIHRoZSBkYXRhIGJ5IGNvdW50cnkgYW5kIGZpbmQgb3V0IHRoZSB5ZWFyIHRyZW5kIGZyb20gMTk5NSB0byAyMDE1LiBXZSBjYWxsIHRoaXMgdHlwZSBvZiBkYXRhIHVudGlkeSBhbmQgbmVlZCB0byB0cmFuc2Zvcm0gZm9yIGVhc3kgZGF0YSBwcm9jZXNzLg0KVGhlIFVSTCB0byB0aGUgLlJtZCBmaWxlIGluIHlvdXIgR2l0SHViIHJlcG9zaXRvcnkuIGFuZA0KVGhlIFVSTCBmb3IgeW91ciBycHVicy5jb20gd2ViIHBhZ2UuDQoNCg0KDQojIyBEYXRhIA0KDQojIyBsb2FkIGNzdiBpbnRvIG1lbSBmb3IgYWQgaG9jIEVEQS4gDQojIyB0aGlzIHdyaXRlIHVwIHdhcyB2ZXJ5IGhlbHBmdWwgLSB0aGV5IHVzZWQgYSB2ZXJ5IHNpbWlsaWFyIGRhdGFzZXQNCiMjIGh0dHBzOi8vYmxvZy5leHBsb3JhdG9yeS5pby90aWR5LXVudGlkeS11bml0ZWQtbmF0aW9ucy1taWdyYXRpb24tZGF0YS13aXRoLXRpZHlyLTE2N2NiZDI0YzVjMg0KDQpgYGB7cn0NCnJhd19kYXRhIDwtIHJlYWQuY3N2KCJJbW1pZ3JhdGlvbiBEYXRhLmNzdiIsIHNlcCA9ICIsIiwgLCBza2lwID0gMTYsIGhlYWRlciA9IEZBTFNFKSAjaW5pdGlhbCB0aWR5IG9uIHJlbW92aW5nIGZpcnN0IDE2IHJvd3Mgb2Ygbm9uICNjb3VubXRyeSBkYXQNCiM/cmVhZC5jc3YNCmhlYWQocmF3X2RhdGEpDQojIFY1IGNvbHVtbiwgaWYgYmxhbmsgdGhpcyBpcyByZWdpb27igJkgcm93cyBkb27igJl0IGhhdmUgYW55IHZhbHVlIHRoZXIuIFdlIHdpbGwgdXNlIHRoaXMgdG8gcmVtb3ZlIHRoZSByZWdpb25zIGFuZCBsZWF2ZSB0aGUgY291bnRyeSBkYXRhIGZvciBhbmFseXNpcw0KZGYgPC0gcmF3X2RhdGENCmRmDQpgYGANCg0KDQojIFRpZHkNCmBgYHtyfQ0KI2dldHMgdGhlIHJlZ2lvbiAobm9uLWNvdW50cnkpIGluZm8gdG8gaW5zcGVjdCBpbnRvIGEgZGF0YSBmcmFtZSBmb3IgcmVtb3ZhbCBzbyB0aGF0IHdlIGNhbiBiZSBsZWZ0IHdpdGggY291bnRyeSBkYXRhIG9ubHkuIA0KP2ZpbHRlcg0KIGRmX25vdF9uYSA8LSBkZiAlPiUgZmlsdGVyIChWNSAhPSAiIiApDQogZGZfbm90X25hDQojIGRmX25vdF9uYSBpcyBub3cgZmlsdGVyZWQgdG8gdGhlIGNvdW50cnkgb25seS4gVXNlIG5hbWVzIHRvIHByb3ZpZGUgYmV0ZXIgY29sdW1uIG5hbWVzDQoNCm5hbWVzKGRmX25vdF9uYSkgPC0gYygiU29ydF9vcmRlciIsICJEZXN0aW5hdGlvbl9Db3VudHJ5IiwgIk5vdGVzIiwgIkNvdW50cnlfY29kZSIsICJUeXBlb2ZEYXRhIiwgImExOTkwX3BlcmMiLCAiYTE5OTVfcGVyYyIsImEyMDAwX3BlcmMiLCJhMjAwNV9wZXJjIiwiYTIwMTBfcGVyYyIsImEyMDE1X3BlcmMiLCJhMjAxN19wZXJjIiApDQpkZl9ub3RfbmENCmBgYA0KDQoNCiMgT3JkZXJlZCBieSBEZXN0aW5hdGlvbiBDb3VudHJ5DQpgYGAge3J9DQphcnJhbmdlKGRmX25vdF9uYSwgRGVzdGluYXRpb25fQ291bnRyeSkNCg0KZGZfMjAxNyA8LSBkZl9ub3RfbmEgJT4lIHNlbGVjdCgtYTE5OTBfcGVyYywgLWExOTk1X3BlcmMsIC1hMjAwMF9wZXJjLC1hMjAwNV9wZXJjLC1hMjAxMF9wZXJjICwtYTIwMTVfcGVyYykNCmRmXzIwMTcNCg0KZGZfMjAxN190b3A1IDwtIHRvcF9uKGRmXzIwMTcsNSxhMjAxN19wZXJjKQ0KZGZfMjAxN190b3A1DQoNCg0KYGBgDQo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiRGF0YSA2MDcgLSBQcm9qZWN0IDIiCmF1dGhvcjogIk5pY2hvbGFzIENodW5nLCBKb2UgUm92YWxpbm8sIFQuIEplbmtpbnMiCnN1YnRpdGxlOiAnRGF0YXNldCAyOiBJbW1pZ3JhdGlvbiBkYXRhJwpvdXRwdXQ6CiAgaHRtbF9kb2N1bWVudDoKICAgIGNvZGVfZG93bmxvYWQ6IHllcwogICAgY29kZV9mb2xkaW5nOiBoaWRlCiAgICBoaWdobGlnaHQ6IHB5Z21lbnRzCiAgICBudW1iZXJfc2VjdGlvbnM6IHllcwogICAgdGhlbWU6IGZsYXRseQogICAgdG9jOiB5ZXMKICAgIHRvY19mbG9hdDogeWVzCi0tLQoKCmBgYHtyIHNldHVwLCBpbmNsdWRlPUZBTFNFfQprbml0cjo6b3B0c19jaHVuayRzZXQoZWNobyA9IFRSVUUpCmxpYnJhcnkoZHBseXIpCmxpYnJhcnkodGlkeXIpCmxpYnJhcnkoc3RyaW5ncikKYGBgCgoKUmVsZXZhbnQgSW5mb3JtYXRpb246ClN1Z2dlc3Rpb24gb2YgZGF0YSBieSBjbGFzc21hdGUgLSBNZW5ncWluIENhaSAKVGhlc2UgZGF0YSBzZXQgcHVibGlzaGVkIGJ5IHRoZSBVbml0ZWQgTmF0aW9uLCB3aGljaCBjYWxjdWxhdGVzIEZlbWFsZSBtaWdyYW50cyBhcyBhIHBlcmNlbnRhZ2Ugb2YgdGhlIGludGVybmF0aW9uYWwgbWlncmFudCBzdG9jayAuIFRoZSBkYXRhc2V0IGhhcyBzZXZlbiB2YXJpYWJsZXMsICBBcmVhLCBDb3VudHJ5LCBOb3RlcywgQ291bnRyeSBjb2RlLCBUeXBlIG9mIGRhdGEgKGEpLCBZZWFycywgUGVyY2VudGFnZS4gVGhpcyB0YWJsZSBjb21wYXJlcyBkaWZmZXJlbnQgY291bnRyaWVzJyBmZW1hbGUgbWlncmFudHMgYXMgYSBwZXJjZW50YWdlIG9mIHRoZSBpbnRlcm5hdGlvbmFsIG1pZ3JhbnQgc3RvY2sgYW5kIHNob3dzIHRoZWlyIGNoYW5nZXMgZnJvbSAxOTkwIHRvIDIwMTUuIFRoZSBkYXRhIGNvbWJpbmUgdGhlIGFyZWEgYW5kIGNvdW50cnkgd2l0aCB0aGUgc2FtZSBjb2x1bW4gYW5kIHNldCB5ZWFyIHZhbHVlcyBhcyBoZWFkZXIgbmFtZXMuIEl0IGlzIG5vdCBlYXN5IHRvIHByb2Nlc3MgdGhlIGRhdGEgaWYgd2Ugd2FudCB0byBjb21wYXJlIHRoZSBkYXRhIGJ5IGNvdW50cnkgYW5kIGZpbmQgb3V0IHRoZSB5ZWFyIHRyZW5kIGZyb20gMTk5NSB0byAyMDE1LiBXZSBjYWxsIHRoaXMgdHlwZSBvZiBkYXRhIHVudGlkeSBhbmQgbmVlZCB0byB0cmFuc2Zvcm0gZm9yIGVhc3kgZGF0YSBwcm9jZXNzLgpUaGUgVVJMIHRvIHRoZSAuUm1kIGZpbGUgaW4geW91ciBHaXRIdWIgcmVwb3NpdG9yeS4gYW5kClRoZSBVUkwgZm9yIHlvdXIgcnB1YnMuY29tIHdlYiBwYWdlLgoKCgojIyBEYXRhIAoKIyMgbG9hZCBjc3YgaW50byBtZW0gZm9yIGFkIGhvYyBFREEuIAojIyB0aGlzIHdyaXRlIHVwIHdhcyB2ZXJ5IGhlbHBmdWwgLSB0aGV5IHVzZWQgYSB2ZXJ5IHNpbWlsaWFyIGRhdGFzZXQKIyMgaHR0cHM6Ly9ibG9nLmV4cGxvcmF0b3J5LmlvL3RpZHktdW50aWR5LXVuaXRlZC1uYXRpb25zLW1pZ3JhdGlvbi1kYXRhLXdpdGgtdGlkeXItMTY3Y2JkMjRjNWMyCgpgYGB7cn0KcmF3X2RhdGEgPC0gcmVhZC5jc3YoIkltbWlncmF0aW9uIERhdGEuY3N2Iiwgc2VwID0gIiwiLCAsIHNraXAgPSAxNiwgaGVhZGVyID0gRkFMU0UpICNpbml0aWFsIHRpZHkgb24gcmVtb3ZpbmcgZmlyc3QgMTYgcm93cyBvZiBub24gI2NvdW5tdHJ5IGRhdAojP3JlYWQuY3N2CmhlYWQocmF3X2RhdGEpCiMgVjUgY29sdW1uLCBpZiBibGFuayB0aGlzIGlzIHJlZ2lvbuKAmSByb3dzIGRvbuKAmXQgaGF2ZSBhbnkgdmFsdWUgdGhlci4gV2Ugd2lsbCB1c2UgdGhpcyB0byByZW1vdmUgdGhlIHJlZ2lvbnMgYW5kIGxlYXZlIHRoZSBjb3VudHJ5IGRhdGEgZm9yIGFuYWx5c2lzCmRmIDwtIHJhd19kYXRhCmRmCmBgYAoKCiMgVGlkeQpgYGB7cn0KI2dldHMgdGhlIHJlZ2lvbiAobm9uLWNvdW50cnkpIGluZm8gdG8gaW5zcGVjdCBpbnRvIGEgZGF0YSBmcmFtZSBmb3IgcmVtb3ZhbCBzbyB0aGF0IHdlIGNhbiBiZSBsZWZ0IHdpdGggY291bnRyeSBkYXRhIG9ubHkuIAo/ZmlsdGVyCiBkZl9ub3RfbmEgPC0gZGYgJT4lIGZpbHRlciAoVjUgIT0gIiIgKQogZGZfbm90X25hCiMgZGZfbm90X25hIGlzIG5vdyBmaWx0ZXJlZCB0byB0aGUgY291bnRyeSBvbmx5LiBVc2UgbmFtZXMgdG8gcHJvdmlkZSBiZXRlciBjb2x1bW4gbmFtZXMKCm5hbWVzKGRmX25vdF9uYSkgPC0gYygiU29ydF9vcmRlciIsICJEZXN0aW5hdGlvbl9Db3VudHJ5IiwgIk5vdGVzIiwgIkNvdW50cnlfY29kZSIsICJUeXBlb2ZEYXRhIiwgImExOTkwX3BlcmMiLCAiYTE5OTVfcGVyYyIsImEyMDAwX3BlcmMiLCJhMjAwNV9wZXJjIiwiYTIwMTBfcGVyYyIsImEyMDE1X3BlcmMiLCJhMjAxN19wZXJjIiApCmRmX25vdF9uYQpgYGAKCgojIE9yZGVyZWQgYnkgRGVzdGluYXRpb24gQ291bnRyeQpgYGAge3J9CmFycmFuZ2UoZGZfbm90X25hLCBEZXN0aW5hdGlvbl9Db3VudHJ5KQoKZGZfMjAxNyA8LSBkZl9ub3RfbmEgJT4lIHNlbGVjdCgtYTE5OTBfcGVyYywgLWExOTk1X3BlcmMsIC1hMjAwMF9wZXJjLC1hMjAwNV9wZXJjLC1hMjAxMF9wZXJjICwtYTIwMTVfcGVyYykKZGZfMjAxNwoKZGZfMjAxN190b3A1IDwtIHRvcF9uKGRmXzIwMTcsNSxhMjAxN19wZXJjKQpkZl8yMDE3X3RvcDUKCgpgYGAK</div>
 
 
 </div>
@@ -4680,6 +4643,55 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("Data_607_Project2_Data2.rmd");
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

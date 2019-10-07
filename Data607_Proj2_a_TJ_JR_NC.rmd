@@ -33,22 +33,22 @@ The URL to the .Rmd file in your GitHub repository. and
 The URL for your rpubs.com web page.
 
 ```{r}
-db_user <- 'root'
-db_password <- getPass::getPass("Enter the password: ") 
-db_name <- 'data607proj2'
-db_table <- 'powerball'
-db_host <- '127.0.0.1' # for local access
-db_port <- 3306
+#db_user <- 'root'
+#db_password <- getPass::getPass("Enter the password: ") 
+#db_name <- 'data607proj2'
+#db_table <- 'powerball'
+#db_host <- '127.0.0.1' # for local access
+#db_port <- 3306
 
-mydb <-  dbConnect(MySQL(), user = db_user, password = db_password,
-                 dbname = db_name, host = db_host, port = db_port)
+#mydb <-  dbConnect(MySQL(), user = db_user, password = db_password,
+#                 dbname = db_name, host = db_host, port = db_port)
 
-s <- paste0("select * from ", db_table)
-rs <- dbSendQuery(mydb, s)
-df <-  fetch(rs, n = -1)
-on.exit(dbDisconnect(mydb))
+#s <- paste0("select * from ", db_table)
+#rs <- dbSendQuery(mydb, s)
+#df <-  fetch(rs, n = -1)
+#on.exit(dbDisconnect(mydb))
 
-df
+#df
 ```
 
 # load csv into mem for ad hoc EDA. 

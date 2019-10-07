@@ -3,8 +3,6 @@ title: "Data 607 - Project 2"
 author: "Nicholas Chung, Joe Rovalino, T. Jenkins"
 subtitle: 'Dataset 2: Immigration data'
 output:
-  pdf_document:
-    toc: yes
   html_document:
     code_download: yes
     code_folding: hide

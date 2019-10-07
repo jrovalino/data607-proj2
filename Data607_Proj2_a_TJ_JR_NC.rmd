@@ -9,6 +9,10 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(getPass)
+library(RMySQL)
+library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -29,9 +33,6 @@ The URL to the .Rmd file in your GitHub repository. and
 The URL for your rpubs.com web page.
 
 ```{r}
-library(getPass)
-library(RMySQL)
-
 db_user <- 'root'
 db_password <- getPass::getPass("Enter the password: ") 
 db_name <- 'data607proj2'
@@ -54,8 +55,6 @@ df
 ##### NC note: happy to host the mysql db in my aws and share pw via lastpass so we can mutually reference a common table.
 ```{r}
 raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
-#nrow(raw_data)
-#?na.omit
 nrow(na.omit(raw_data))
 head(raw_data)
 ```
@@ -84,12 +83,6 @@ head(winnings)
 * in "jackpot winners" column, value "roll" indicates a roll-over, where no winner was selected (ref: https://answers.yahoo.com/question/index?qid=20110429210210AA8Y824&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZWNvc2lhLm9yZy8&guce_referrer_sig=AQAAAB6jQ-NGhdyMOMlFbNTSrqAgIkL-1JtAQoQyaGrwCWYspY8f3mDVzHJjsZ0enRMo17Ww9cYAzc2fmAKhcEkhTGArfXiiOZfMk1Du9658VBZZg5ZU8MjAsbaLY15qkJ4zaGU10aXtW5Fqm0qsgJvVSsPIX5_CI5veEM03FoI_h1lC). 
 * where "jackpot option" value is "CVO", it is also possible to spot a value indicating the number of "jackpot winners"
 
-# list of potential questions we can ask / potential visualizations
-* likelihood of "out of state winner" vs presumably "in state winner"
-* average number of rolls and time between winners, grouped by type of winner
-* how has growth of jackpot size between wins changed over time?
-* distribution of numbers (how "random"/normally distributed is number selection?)
-
 # update headers 
 ```{r}
 names(winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_winners", "jackpot_options")
@@ -99,7 +92,6 @@ winnings
 # transform "est_jackpot" into numeric values
 ```{r}
 table(winnings$est_jackpot) # check distribution of values to identify values that need replacing
-#?sub
 winnings$est_jackpot <- sub(" Million", "000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
 winnings$est_jackpot <- sub(" Billion", "000000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
 winnings$est_jackpot <- as.numeric(sub("\\$", "", winnings$est_jackpot)) # transform class to numeric
@@ -112,44 +104,75 @@ winnings
 clean.winnings = filter(winnings, !grepl("First", num1)) # remove rows with string "First", which are unique to descriptive text
 head(clean.winnings)
 ```
+
+# we want "jackpot winners" and "jackpot_options" tidied such that: 
+* "outcome": roll, out of state winner, CVO
+* "winner_count": number of winners
 ```{r}
-#change datatypes to integer. moving to cw data frame to isolate anything JR is doing that rest don't like. 
-library(lubridate)
-
-cw <- clean.winnings
-cw
-
-cw<- cw %>%mutate(draw_date = as.Date(cw$draw_date,format="%m/%d/%Y")) %>% 
-mutate_at(vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot), funs(as.integer))
-cw
+# cast win, type of winner, and number of winners
+casted.winnings <- clean.winnings %>%
+  pivot_wider(names_from = "jackpot_winners", values_from = "jackpot_winners")
+casted.winnings
 ```
 
 ```{r}
-pb_df <- as_tibble(cw)
+# rename all headers for easy reference
+names(casted.winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_options", "roll", "out of state winner", "winner_count")
+
+# recombine roll/out of state into "status"
+casted.winnings$status <- paste(casted.winnings$roll, casted.winnings$'out of state winner', sep=" ")
+
+# clean up NA values
+casted.winnings$status <- sub(" NA", "", casted.winnings$status)
+casted.winnings$status <- sub("NA ", "", casted.winnings$status)
+casted.winnings$status <- sub("NA", "Winner", casted.winnings$status)
+
+# select only those columns we want to keep
+tidy.winnings <- subset(casted.winnings, select=c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_options", "status", "winner_count"))
+
+# replace NA with 0
+tidy.winnings$winner_count[is.na(tidy.winnings$winner_count)] <- 0
+
+head(tidy.winnings)
+```
+
+```{r}
+# transform relevant datatypes to integer and date 
+tw <- tidy.winnings %>% mutate(
+  draw_date = as.Date(tidy.winnings$draw_date,format="%m/%d/%Y")
+  ) %>% 
+  mutate_at(
+    vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot, winner_count), funs(as.integer)
+    )
+head(tw)
+```
+
+```{r}
+pb_df <- as_tibble(tw)
 pb_df
-
 ```
 
-#check gather worked on each position to create a data frame for each num position
-#pb_df %>% gather(num1, count, -Game_Name, -Month, -Day, -Year, -Num2,-Num3,-Num4, -Num5, - Powerball)
-# select gets rid of Game Name field
-#spread to widen 
+# commence analysis of data
+#### questions:
+* distribution of numbers (how "random"/normally distributed is number selection?)
+* what is distribution of jackpot outcomes? 
+* how has growth of jackpot size between wins changed over time?
+```{r}
+# group the data by position - to detemine number value and count occurance of number in the position
+jkpt_temp <- pb_df %>% group_by (status) %>% summarize (n()) 
+# rename headers
+names(jkpt_temp) <- c("status", "count")
+head(jkpt_temp)
+
+ggplot(jkpt_temp, aes(fill=status, y=count, x=status)) +
+  ggtitle("jackpot winners") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('jackpot winners') +
+  ylab('count')
+```
 
 ```{r}
-# Commence analysis of data
-# Group the data by position - to detemine number value and count occurance of number in the position
-library(ggplot2)
-
-jkpt_temp <- pb_df %>% group_by (jackpot_winners) %>% summarize (n()) 
-jkpt_temp
- 
-ggplot(jkpt_temp, aes(fill=airline, y=jackpot_winners, x=n())) +
-    ggtitle("Ontime by City") +
-    theme(plot.title = element_text(hjust = 0.5)) + 
-    geom_bar(position='dodge', stat="identity") +
-    xlab('City') + 
-    ylab('Percent of Flights On time')
-
 # frequency position integers
 freq_num1 <- pb_df %>% group_by (num1) %>% summarize (n())
 freq_num2 <- pb_df %>% group_by (num2) %>% summarize (n())
@@ -157,7 +180,27 @@ freq_num3 <- pb_df %>% group_by (num3) %>% summarize (n())
 freq_num4 <- pb_df %>% group_by (num4) %>% summarize (n())
 freq_num5 <- pb_df %>% group_by (num5) %>% summarize (n())
 freq_powerball <- pb_df %>% group_by (powerball) %>% summarize (n())
-# view into wheather gambler should purchase for aaddiitonal monies the powerplay option
-freq_power_play <- pb_df %>% group_by (power_play) %>% summarize (n())
-freq_power_play
+
+# rename headers
+names(freq_powerball) <- c("powerball", "count")
+head(freq_powerball)
+
+ggplot(freq_powerball, aes(fill=powerball, y=count, x=powerball)) +
+  ggtitle("distribution of drawn powerball numbers") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('winning numbers') +
+  ylab('count')
 ```
+
+```{r}
+ggplot(data=pb_df, aes(x=draw_date, y=est_jackpot, group=1)) +
+  ggtitle("jackpot size over time") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_line(color="red") + 
+  xlab('time') +
+  ylab('jackpot size, in $')
+```
+
+# findings
+* distribution of winning numbers suggests non-random selection

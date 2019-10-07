@@ -1,0 +1,58 @@
+---
+title: "Data607_Proj2_dataset#2 - Immigration Data"
+author: "Joe_Rovalino, Tamiko Jenkins and Nicholas Chung"
+date: "10/02/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(stringr)
+```
+
+## R Markdown
+
+Relevant Information:
+Suggestion of data by classmate - Mengqin Cai 
+These data set published by the United Nation, which calculates Female migrants as a percentage of the international migrant stock . The dataset has seven variables,  Area, Country, Notes, Country code, Type of data (a), Years, Percentage. This table compares different countries' female migrants as a percentage of the international migrant stock and shows their changes from 1990 to 2015. The data combine the area and country with the same column and set year values as header names. It is not easy to process the data if we want to compare the data by country and find out the year trend from 1995 to 2015. We call this type of data untidy and need to transform for easy data process.
+The URL to the .Rmd file in your GitHub repository. and
+The URL for your rpubs.com web page.
+
+
+
+# load csv into mem for ad hoc EDA. 
+# this write up was very helpful - they used a very similiar dataset
+# https://blog.exploratory.io/tidy-untidy-united-nations-migration-data-with-tidyr-167cbd24c5c2
+
+```{r}
+raw_data <- read.csv("Immigration Data.csv", sep = ",", , skip = 16, header = FALSE) #initial tidy on removing first 16 rows of non #counmtry dat
+#?read.csv
+head(raw_data)
+# V5 column, if blank this is region’ rows don’t have any value ther. We will use this to remove the regions and leave the country data for analysis
+df <- raw_data
+df
+#gets thw region (non-country) info to inspect into a data frame for removal so that we can be left with country data only. 
+?filter
+ df_not_na <- df %>% filter (V5 != "" )
+ df_not_na
+# df_not_na is now filtered to the country only. Use names to provide beter column names
+
+names(df_not_na) <- c("Sort_order", "Destination_Country", "Notes", "Country_code", "TypeofData", "a1990_perc", "a1995_perc","a2000_perc","a2005_perc","a2010_perc","a2015_perc","a2017_perc" )
+df_not_na
+
+#ordered by Destination Country
+arrange(df_not_na, Destination_Country)
+
+df_2017 <- df_not_na %>% select(-a1990_perc, -a1995_perc, -a2000_perc,-a2005_perc,-a2010_perc ,-a2015_perc)
+df_2017
+
+df_2017_top5 <- top_n(df_2017,5,a2017_perc)
+df_2017_top5
+
+
+```
+

@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(ggplot2)
 ```
 
 ## R Markdown
@@ -53,6 +54,11 @@ df_2017
 df_2017_top5 <- top_n(df_2017,5,a2017_perc)
 df_2017_top5
 
-
+ggplot(df_2017_top5, aes(fill=Destination_Country, y=Destination_Country, x=a2017_perc)) +
+  ggtitle("Top 5 Destination Country w/ Femail %") +
+  theme(plot.title = element_text(hjust = 0.1)) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('2017 Percent') +
+  ylab('Destination Country')
 ```
 

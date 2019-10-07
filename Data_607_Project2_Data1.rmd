@@ -1,0 +1,266 @@
+---
+title: "Data 607 - Project 2"
+author: "Nicholas Chung, Joe Rovalino, T. Jenkins"
+subtitle: 'Dataset 1: Powerball data'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    code_download: yes
+    code_folding: hide
+    highlight: pygments
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+The goal of this assignment is to give you practice in preparing different datasets for downstream
+analysis work.
+
+Your task is to:
+
+(1) Choose any three of the “wide” datasets identified in the Week 6 Discussion items. (You may
+use your own dataset; please don’t use my Sample Post dataset, since that was used in your
+Week 6 assignment!) 
+
+Relevant Information:
+
+The Powerball lottery was loaded into MySQL DB and describes Powerball winning numbers over a period of Feb 3rd to the present. 
+(1) Created a MySQL database that includes all of the information above. - CHOSE to load to MySQL and use the lesson from homework 2 to create DB.
+(2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy
+and transform your data.
+(3) Perform analysis to compare the numbers in the various position of the powerball winning number.
+(4) Code will be in an R Markdown file, posted to rpubs.com, and will include narrative
+descriptions of your data cleanup work, analysis, and conclusions. We will include in our
+project submission:
+* The URL to the .Rmd file in your GitHub repository. and
+* The URL for your rpubs.com web page.
+
+
+
+## Data {.tabset}
+
+Initial observations on state of raw data:
+* we know that there is variance in header count, where data from 2012 to 2014 has one less header "Power Play"
+* rows that represent drawings from 2012 to 2014 have value "0" where header is "Power Play" / column position is 11
+* column 1 is not useful
+
+Observations on both data sets collected so far:
+* after omitting rows with missing data, there is row count parity
+* "estimated jackpot" column contains values that require transformation into numeric representation
+* "jackpot option" column contains "CVO" value, which indicates whether the winner took the lump sum over annual payments
+* "winning numbers" column headers will require transformation in unique values by position
+* in "jackpot winners" column, value "roll" indicates a roll-over, where no winner was selected (ref: https://answers.yahoo.com/question/index?qid=20110429210210AA8Y824&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZWNvc2lhLm9yZy8&guce_referrer_sig=AQAAAB6jQ-NGhdyMOMlFbNTSrqAgIkL-1JtAQoQyaGrwCWYspY8f3mDVzHJjsZ0enRMo17Ww9cYAzc2fmAKhcEkhTGArfXiiOZfMk1Du9658VBZZg5ZU8MjAsbaLY15qkJ4zaGU10aXtW5Fqm0qsgJvVSsPIX5_CI5veEM03FoI_h1lC). 
+* where "jackpot option" value is "CVO", it is also possible to spot a value indicating the number of "jackpot winners"
+
+
+### MySQL
+
+
+db_user <- 'root'
+db_password <- getPass::getPass("Enter the password: ") 
+db_name <- 'data607proj2'
+db_table <- 'powerball'
+db_host <- '127.0.0.1' # for local access
+db_port <- 3306
+
+mydb <-  dbConnect(MySQL(), user = db_user, password = db_password,
+                 dbname = db_name, host = db_host, port = db_port)
+
+s <- paste0("select * from ", db_table)
+rs <- dbSendQuery(mydb, s)
+df <-  fetch(rs, n = -1)
+on.exit(dbDisconnect(mydb))
+
+df
+
+
+
+#### Reference
+Texas Lottery. Download. Txlottery.org. https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/download.html. Published 2019. Accessed October 7, 2019.
+
+### CSV
+
+```{r}
+raw_data <- read.csv("powerball.csv", sep = ",", header = FALSE)
+nrow(na.omit(raw_data))
+head(raw_data)
+```
+
+#### Reference
+Texas Lottery. Download. Txlottery.org. https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/download.html. Published 2019. Accessed October 7, 2019.
+
+### Scrapped Data
+
+#### Scrape table with estimated jackpot winnings
+```{r}
+library(xml2)
+library(rvest)
+url <- "https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html"
+winnings <- xml2::read_html(url)
+winnings <- rvest::html_table(winnings)[[1]]
+nrow(na.omit(raw_data))
+head(winnings)
+```
+
+#### Reference
+Powerball Winning Numbers - Print Friendly Format. Txlottery.org. https://www.txlottery.org/export/sites/lottery/Games/Powerball/Winning_Numbers/print.html_2013354932.html. Published 2019. Accessed October 7, 2019.
+
+
+## Clean and Tidying {.tabset}
+
+### Cleaning
+
+#### update headers 
+```{r}
+library(tidyr)
+library(dplyr)
+library(readr)
+names(winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_winners", "jackpot_options")
+winnings
+```
+
+#### transform "est_jackpot" into numeric values
+```{r}
+table(winnings$est_jackpot) # check distribution of values to identify values that need replacing
+winnings$est_jackpot <- sub(" Million", "000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
+winnings$est_jackpot <- sub(" Billion", "000000000", winnings$est_jackpot) # replace "Million" and preceding space with appropriate digits
+winnings$est_jackpot <- as.numeric(sub("\\$", "", winnings$est_jackpot)) # transform class to numeric
+head(winnings)
+winnings
+```
+
+#### drop rows where winning numbers have alpha to remove descriptive text
+```{r}
+clean.winnings = dplyr::filter(winnings, !grepl("First", num1)) # remove rows with string "First", which are unique to descriptive text
+head(clean.winnings)
+```
+
+### Tidyr
+
+#### We want "jackpot winners" and "jackpot_options" tidied such that: 
+* "outcome": roll, out of state winner, CVO
+* "winner_count": number of winners
+
+```{r}
+# cast win, type of winner, and number of winners
+casted.winnings <- clean.winnings %>%
+#  pivot_wider(names_from = "jackpot_winners", values_from = "jackpot_winners")  # Requires dev version of tidyr
+#  workaround
+  gather(names_from = "jackpot_winners", values_from = "jackpot_winners")
+library(fastDummies)
+dummy_winners <- dummy_cols(casted.winnings$value)
+casted.winnings$key <- dummy_winners[,2]
+casted.winnings$value <- dummy_winners[,3]
+casted.winnings$value2 <- dummy_winners[,3]
+head(dummy_winners)
+casted.winnings
+```
+
+```{r}
+# rename all headers for easy reference
+names(casted.winnings) <- c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_options", "roll", "out of state winner", "winner_count")
+
+# recombine roll/out of state into "status"
+casted.winnings$status <- paste(casted.winnings$roll, casted.winnings$'out of state winner', sep=" ")
+
+# clean up NA values
+casted.winnings$status <- sub(" NA", "", casted.winnings$status)
+casted.winnings$status <- sub("NA ", "", casted.winnings$status)
+casted.winnings$status <- sub("NA", "Winner", casted.winnings$status)
+
+# select only those columns we want to keep
+tidy.winnings <- subset(casted.winnings, select=c("draw_date", "num1", "num2", "num3", "num4", "num5", "powerball", "power_play", "est_jackpot", "jackpot_options", "status", "winner_count"))
+
+# replace NA with 0
+tidy.winnings$winner_count[is.na(tidy.winnings$winner_count)] <- 0
+
+head(tidy.winnings)
+```
+
+```{r}
+# transform relevant datatypes to integer and date 
+tw <- tidy.winnings %>% mutate(
+  draw_date = as.Date(tidy.winnings$draw_date,format="%m/%d/%Y")
+  ) %>% 
+  mutate_at(
+    vars(num1, num2, num3, num4, num5, powerball, power_play, est_jackpot, winner_count), funs(as.integer)
+    )
+head(tw)
+```
+
+```{r}
+pb_df <- as_tibble(tw)
+pb_df
+```
+
+## Analysis  
+
+### Questions:
+* Distribution of numbers (how "random"/normally distributed is number selection?)
+* What is distribution of jackpot outcomes? 
+* How has growth of jackpot size between wins changed over time?
+
+### Group the data by position
+Detemine number value and count occurance of number in the position.
+```{r}
+library(ggplot2)
+jkpt_temp <- pb_df %>% group_by (status) %>% summarize (n()) 
+# rename headers
+names(jkpt_temp) <- c("status", "count")
+head(jkpt_temp)
+
+ggplot(jkpt_temp, aes(fill=status, y=count, x=status)) +
+  ggtitle("jackpot winners") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('jackpot winners') +
+  ylab('count')
+```
+
+### Frequency position integers
+```{r}
+
+freq_num1 <- pb_df %>% group_by (num1) %>% summarize (n())
+freq_num2 <- pb_df %>% group_by (num2) %>% summarize (n())
+freq_num3 <- pb_df %>% group_by (num3) %>% summarize (n())
+freq_num4 <- pb_df %>% group_by (num4) %>% summarize (n())
+freq_num5 <- pb_df %>% group_by (num5) %>% summarize (n())
+freq_powerball <- pb_df %>% group_by (powerball) %>% summarize (n())
+
+# rename headers
+names(freq_powerball) <- c("powerball", "count")
+head(freq_powerball)
+```
+
+### Distribution of drawn powerball numbers
+```{r}
+ggplot(freq_powerball, aes(fill=powerball, y=count, x=powerball)) +
+  ggtitle("distribution of drawn powerball numbers") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_bar(position='dodge', stat="identity") +
+  xlab('winning numbers') +
+  ylab('count')
+```
+
+### Jackpot size over time
+```{r}
+ggplot(data=pb_df, aes(x=draw_date, y=est_jackpot, group=1)) +
+  ggtitle("jackpot size over time") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_line(color="red") + 
+  xlab('time') +
+  ylab('jackpot size, in $')
+```
+
+
+
+
+
+
+

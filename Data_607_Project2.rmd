@@ -1,0 +1,99 @@
+---
+title: "Data 607 - Project 2" 
+subtitle: "Dataset 1"
+author: "Nicholas Chung, Joe Rovalino, T. Jenkins"
+output:
+  html_document: 
+    code_download: true
+    code_folding: hide
+    highlight: pygments
+    # number_sections: yes
+    theme: "flatly"
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+The goal of this assignment is to give you practice in preparing different datasets for downstream
+analysis work.
+
+Your task is to:
+
+(1) Choose any three of the “wide” datasets identified in the Week 6 Discussion items. (You may
+use your own dataset; please don’t use my Sample Post dataset, since that was used in your
+Week 6 assignment!) 
+
+For each of the three chosen datasets:
+* Create a .CSV file (or optionally, a MySQL database!) that includes all of the information
+included in the dataset. You’re encouraged to use a “wide” structure similar to how the
+information appears in the discussion item, so that you can practice tidying and
+transformations as described below.
+* Read the information from your .CSV file into R, and use tidyr and dplyr as needed to
+tidy and transform your data. [Most of your grade will be based on this step!]
+* Perform the analysis requested in the discussion item.
+* Your code should be in an R Markdown file, posted to rpubs.com, and should include
+narrative descriptions of your data cleanup work, analysis, and conclusions.
+(2) Please include in your homework submission, for each of the three chosen datasets:
+* The URL to the .Rmd file in your GitHub repository, and
+* The URL for your rpubs.com web page
+
+## Section 1 {.tabset}
+
+Give an introduction to section 1A...
+
+
+### Sub Section 1
+
+Write something in this sub section... 
+
+```{r}
+library(tidyverse)
+theme_set(theme_minimal())
+iris %>% 
+  ggplot(aes(Sepal.Length, Sepal.Width, color = Species, fill = Species)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+
+```
+
+### Sub Section 2
+
+Write something in this sub section...
+
+```{r}
+summary(iris)
+```
+
+
+## Section 2 {.tabset}
+
+Give an introduction to section 2...
+
+### Sub Section 1
+
+Write something in this sub section... 
+
+```{r}
+iris %>% 
+  group_by(Species) %>% 
+  count() %>% 
+  ggplot(aes(Species, n, fill = Species)) + 
+  geom_col()
+```
+
+### Sub Section 2
+
+Write something in this sub section...
+
+### Sub Section 3
+
+Write something in this sub section...
+
+
+
+
+
+
